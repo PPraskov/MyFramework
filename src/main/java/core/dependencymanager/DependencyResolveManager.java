@@ -1,6 +1,6 @@
 package core.dependencymanager;
 
-import core.execution.ExtendedHttpExchange;
+import core.repository.RepositoryFactoryImpl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -10,68 +10,139 @@ import java.util.Map;
 
 public class DependencyResolveManager implements DependencyBuilder {
 
-    private final Map<Class, BeanDependency> defaultBeans;
-    private final Map<Class, BeanDependency> applicationBeans;
+    private final Map<Class, BeanDependency> beans;
     private final Map<Class, ComponentDependency> components;
     private TemporaryBeans temporaryBeansClass;
     private Map<Class, Method> temporaryBeans;
     private Map<Class, Object> instances;
+    private Map<Class, DependencyType> dependencyType;
 
     public DependencyResolveManager() {
         this.instances = new HashMap<>();
-        this.defaultBeans = DependencyContainer.getInstance().getDefaultBeans();
-        this.applicationBeans = DependencyContainer.getInstance().getApplicationBeans();
+        this.beans = DependencyContainer.getInstance().getBeans();
         this.components = DependencyContainer.getInstance().getComponents();
+        this.dependencyType = setDependencyTypes();
     }
 
-    Object buildComponent(Class aClass) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+    private Map<Class, DependencyType> setDependencyTypes() {
+        Map<Class, DependencyType> classTypes = new HashMap<>();
+        for (Class c : this.beans.keySet()
+        ) {
+            classTypes.put(c, this.beans.get(c).getDependencyType());
+        }
+        for (Class c : this.components.keySet()
+        ) {
+            classTypes.put(c, this.components.get(c).getDependencyType());
+        }
+
+        return classTypes;
+    }
+
+    @Override
+    public Object buildController(Class aClass) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+        return build(aClass);
+    }
+
+    @Override
+    public Object buildComponent(Class aClass) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        return build(aClass);
+    }
+
+    @Override
+    public Object[] buildMethodDependencies(Method m) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+        Class[] classArr = m.getParameterTypes();
+        Object[] objects = new Object[classArr.length];
+        for (int i = 0; i < classArr.length; i++) {
+            objects[i] = build(classArr[i]);
+        }
+        return objects;
+    }
+
+    private Object build(Class aClass) throws IllegalAccessException, InstantiationException, InvocationTargetException {
         Object o = null;
         if (this.instances.containsKey(aClass)) {
             return this.instances.get(aClass);
-        } else if (this.defaultBeans.containsKey(aClass)) {
-            return createBean(aClass,this.defaultBeans);
-        } else if (this.applicationBeans.containsKey(aClass)) {
-            return createBean(aClass,this.applicationBeans);
-        } else if (this.temporaryBeans != null && this.temporaryBeans.containsKey(aClass))
-        {
-           return createTempBean(aClass);
-        }else if (this.components.containsKey(aClass)) {
-            Class[] parameterTypes = DependencyContainer
-                    .getInstance()
-                    .getComponents()
-                    .get(aClass)
-                    .getConstructor()
-                    .getParameterTypes();
-            Object[] params = new Object[parameterTypes.length];
-            for (int i = 0; i < parameterTypes.length; i++) {
-                Class param = parameterTypes[i];
-                params[i] = buildComponent(param);
-            }
-            o = DependencyContainer.getInstance().getComponents().get(aClass).getConstructor().newInstance(params);
-            this.instances.put(aClass, o);
+        }
+//        aClass = checkIfInterface(aClass);
+        DependencyType type = getComponentType(aClass);
+        switch (type) {
+            case BEAN:
+                return createBean(aClass, this.beans);
+            case REPOSITORY:
+                return createRepository(aClass);
+            case CONTROLLER:
+            case BASIC_COMPONENT:
+            case SERVICE:
+                Class[] parameterTypes = this.components
+                        .get(aClass)
+                        .getConstructor()
+                        .getParameterTypes();
+                Object[] params = new Object[parameterTypes.length];
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class param = parameterTypes[i];
+                    params[i] = build(param);
+                }
+                o = this.components.get(aClass).getConstructor().newInstance(params);
+                if (true){ //TODO
+                    this.instances.put(aClass, o);
+                }
+                break;
+
         }
         return o;
     }
 
-    @Override
-    public Object buildController(Class aClass) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        return  buildComponent(aClass);
-    }
-
-    @Override
-    public void init(ExtendedHttpExchange exchange) {
-        settingUpTemporaryBeans(exchange);
-    }
-
-    @Override
-    public Object[] buildMethodDependencies(Method m) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class[] classArr = m.getParameterTypes();
-        Object[] objects = new Object[classArr.length];
-        for (int i = 0; i < classArr.length; i++) {
-            objects[i] = buildComponent(classArr[i]);
+    private Class checkIfInterface(Class aClass){
+        Class clazz = aClass;
+        if (aClass.isInterface()){
+            for (Class c: this.components.keySet()
+            ) {
+                if (aClass.isAssignableFrom(c)){
+                    clazz = c;
+                    break;
+                }
+            }
         }
-        return objects;
+        return clazz;
     }
+
+    private DependencyType getComponentType(Class aClass) {
+        return this.dependencyType.get(aClass);
+    }
+
+    private Object createRepository(Class aClass) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        return RepositoryFactoryImpl.getFactory().createRepository(this.components.get(aClass).getConstructor());
+    }
+//    Object buildComponent(Class aClass) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+//        Object o = null;
+//        if (this.instances.containsKey(aClass)) {
+//            return this.instances.get(aClass);
+//        } else if (this.defaultBeans.containsKey(aClass)) {
+//            return createBean(aClass,this.defaultBeans);
+//        } else if (this.applicationBeans.containsKey(aClass)) {
+//            return createBean(aClass,this.applicationBeans);
+//        } else if (this.temporaryBeans != null && this.temporaryBeans.containsKey(aClass))
+//        {
+//           return createTempBean(aClass);
+//        }else if (this.components.containsKey(aClass)) {
+//            Class[] parameterTypes = DependencyContainer
+//                    .getInstance()
+//                    .getComponents()
+//                    .get(aClass)
+//                    .getConstructor()
+//                    .getParameterTypes();
+//            Object[] params = new Object[parameterTypes.length];
+//            for (int i = 0; i < parameterTypes.length; i++) {
+//                Class param = parameterTypes[i];
+//                params[i] = buildComponent(param);
+//            }
+//            o = DependencyContainer.getInstance().getComponents().get(aClass).getConstructor().newInstance(params);
+//            this.instances.put(aClass, o);
+//        }
+
+//        return o;
+
+//    }
 
     private Object createTempBean(Class aClass) throws InvocationTargetException, IllegalAccessException {
         Method m = this.temporaryBeans.get(aClass);
@@ -79,7 +150,8 @@ public class DependencyResolveManager implements DependencyBuilder {
         return m.invoke(o);
     }
 
-    private Object createBean(Class aClass,Map<Class,BeanDependency> beans) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private Object createBean(Class aClass, Map<Class, BeanDependency> beans) throws
+            IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor constructor = beans.get(aClass).getEmptyConstructor();
         Method buildMethod = beans.get(aClass).getBuildMethod();
         Object instance = constructor.newInstance();
@@ -88,16 +160,4 @@ public class DependencyResolveManager implements DependencyBuilder {
         return o;
     }
 
-
-    private void settingUpTemporaryBeans(ExtendedHttpExchange exchange) {
-        this.temporaryBeansClass = new TemporaryBeans(exchange);
-        Method[] declaredMethods = this.temporaryBeansClass.getClass().getDeclaredMethods();
-        Map<Class, Method> tbMap = new HashMap<>();
-        for (int i = 0; i < declaredMethods.length; i++) {
-            Method m = declaredMethods[i];
-            Class<?> returnType = m.getReturnType();
-            tbMap.put(returnType, m);
-        }
-        this.temporaryBeans = tbMap;
-    }
 }

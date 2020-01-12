@@ -1,5 +1,6 @@
 package core.dependencymanager;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -7,23 +8,23 @@ import java.util.concurrent.atomic.AtomicReference;
 final class DependencyContainer {
 
     private static DependencyContainer instance = null;
-    private final AtomicReference<Map<Class, BeanDependency>> defaultBeans;
-    private final AtomicReference<Map<Class, BeanDependency>> applicationBeans;
+    private final AtomicReference<Map<Class, BeanDependency>> beans;
     private final AtomicReference<Map<Class, ComponentDependency>> components;
 
-    private DependencyContainer(AtomicReference<Map<Class, BeanDependency>> defaultBeans,
-                                AtomicReference<Map<Class, BeanDependency>> applicationBeans,
-                                AtomicReference<Map<Class, ComponentDependency>> components) {
-        this.defaultBeans = defaultBeans;
-        this.applicationBeans = applicationBeans;
-        this.components = components;
+    private DependencyContainer(Map<Class, BeanDependency> beans,
+                                Map<Class, ComponentDependency> components) {
+        Map<Class,BeanDependency> tempBeans = Collections.unmodifiableMap(new HashMap<>(beans));
+        Map<Class,ComponentDependency> tempComponents = Collections.unmodifiableMap(new HashMap<>(components));
+
+        this.beans = new AtomicReference<>(tempBeans);
+        this.components = new AtomicReference<>(tempComponents);
+
     }
 
-    static synchronized DependencyContainer init(AtomicReference<Map<Class, BeanDependency>> defaultBeans,
-                                                 AtomicReference<Map<Class, BeanDependency>> applicationBeans,
-                                                 AtomicReference<Map<Class, ComponentDependency>> components) {
+    static synchronized DependencyContainer init(Map<Class, BeanDependency> beans,
+                                                 Map<Class, ComponentDependency> components) {
         if (instance == null) {
-            instance = new DependencyContainer(defaultBeans, applicationBeans, components);
+            instance = new DependencyContainer(beans, components);
         }
         return instance;
 
@@ -33,16 +34,12 @@ final class DependencyContainer {
         return instance;
     }
 
-    Map<Class, BeanDependency> getDefaultBeans() {
-        return new HashMap<>(this.defaultBeans.get());
-    }
-
-    Map<Class, BeanDependency> getApplicationBeans() {
-        return new HashMap<>(this.applicationBeans.get());
+    Map<Class, BeanDependency> getBeans() {
+        return  Collections.unmodifiableMap(new HashMap<>(this.beans.get()));
     }
 
     Map<Class, ComponentDependency> getComponents() {
-        return new HashMap<>(this.components.get());
+        return Collections.unmodifiableMap(new HashMap<>(this.components.get()));
     }
 
 }

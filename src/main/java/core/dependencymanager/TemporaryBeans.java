@@ -1,8 +1,6 @@
 package core.dependencymanager;
 
 import core.execution.ExtendedHttpExchange;
-import core.utill.FormParameters;
-import core.utill.QueryParameters;
 
 final class TemporaryBeans {
 
@@ -12,12 +10,5 @@ final class TemporaryBeans {
         this.exchange = exchange;
     }
 
-    QueryParameters queryParams(){
-        return new QueryParameters(this.exchange.getQueryParameters());
-    }
-
-    FormParameters inputParams(){
-        return new FormParameters(this.exchange.getInputFormParameters());
-    }
 
 }

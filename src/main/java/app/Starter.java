@@ -1,10 +1,9 @@
 package app;
 
-import core.ApplicationBooter;
+import core.ApplicationStarter;
 
 public class Starter {
     public static void main(String[] args) {
-        System.out.println((Runtime.getRuntime().freeMemory()/1024)/1024);
-        ApplicationBooter.startApplication();
+        ApplicationStarter.startApplication(Starter.class);
     }
 }

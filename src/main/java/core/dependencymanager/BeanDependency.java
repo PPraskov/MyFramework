@@ -5,10 +5,12 @@ import java.lang.reflect.Method;
 
 class BeanDependency {
 
+    private final DependencyType dependencyType;
     private final Constructor emptyConstructor;
     private final Method buildMethod;
 
-    BeanDependency(Class builderClass, Constructor emptyConstructor, Method buildMethod) {
+    BeanDependency(DependencyType dependencyType, Constructor emptyConstructor, Method buildMethod) {
+        this.dependencyType = dependencyType;
         this.emptyConstructor = emptyConstructor;
         this.buildMethod = buildMethod;
     }
@@ -20,4 +22,9 @@ class BeanDependency {
     Method getBuildMethod() {
         return buildMethod;
     }
+
+    DependencyType getDependencyType() {
+        return dependencyType;
+    }
+
 }

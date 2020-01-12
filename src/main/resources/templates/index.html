@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Index</title>
+    <meta http-equiv="Content-Type" content="text/html"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" th-href="@{css/bootstrap.min.css}">
+    <script type="text/javascript" src="js/bootstrap.min.js" th:href="@{js/bootstrap.min.js}"></script>
+    <script type="text/javascript" src="js/temp.js" th:href="@{js/temp.js}"></script>
+</head>
+
+<body>
+<p>Hello there!</p>
+<p th:text="${k}"></p>
+<input type="hidden" mazalo="${k}">
+<button class="btn btn-dark" onclick="hello()"></button>
+</body>
+
+</html>
