@@ -2,12 +2,17 @@ package core.execution.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import core.dependencymanager.DependencyBuilder;
+import core.dependencymanager.DependencyResolveManager;
 import core.exception.HttpException;
 import core.exception.RedirectionException;
 import core.exception.ResourceException;
+import core.execution.http.controller.ControllerManager;
+import core.execution.http.controller.HttpControllerFinder;
 import core.execution.http.thymeleaf.ThymeleafResourceHandler;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 public class ExchangeHandler implements HttpHandler {
 
@@ -23,7 +28,20 @@ public class ExchangeHandler implements HttpHandler {
             this.request.set(new HttpRequestThreadLocal(exchange));
             FrontController frontController = new FrontController();
             frontController.executeChain(this.request);
-            String html = new ThymeleafResourceHandler().findResource("/index", this.request.get().getContext());
+            System.out.println(this.request.get().getExchange().getRequestURI().toString());
+            HttpControllerFinder controllerFinder = new ControllerManager();
+            controllerFinder.findController(
+                    this.request.get().getExchange().getRequestURI().getPath(),
+                    this.request.get().getExchange().getRequestMethod().toUpperCase(),
+                    "");
+            Class controller = controllerFinder.getControllerClazz();
+            Method controllerMethod = controllerFinder.getControllerMethod();
+            DependencyBuilder builder = new DependencyResolveManager();
+            Object controllerObject = builder.buildComponent(controller);
+            controllerMethod.invoke(controllerObject,
+                    builder.buildControllerMethodDependencies(controllerMethod,this.request.get()));
+            String html = new ThymeleafResourceHandler().findResource(this.request.get().getContextAndView().getViewName(),
+                    this.request.get().getContext());
 
             sendResponse(this.request.get().getExchange(),200,html);
 

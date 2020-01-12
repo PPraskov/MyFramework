@@ -1,6 +1,7 @@
 package core.execution.http;
 
 import com.sun.net.httpserver.HttpExchange;
+import core.execution.http.utill.*;
 import org.thymeleaf.context.Context;
 
 import java.util.Map;
@@ -8,14 +9,14 @@ import java.util.Map;
 public class HttpRequestThreadLocal {
 
     private HttpExchange exchange;
-    private Context context;
+    private ContextAndView contextAndView;
 
     private Map<String, String> queryParams;
     private Map<String, String> formParams;
 
     public HttpRequestThreadLocal(HttpExchange exchange) {
         this.exchange = exchange;
-        this.context = new Context();
+        this.contextAndView = new ContextAndView(new Context());
     }
 
     public HttpExchange getExchange() {
@@ -23,8 +24,34 @@ public class HttpRequestThreadLocal {
     }
 
     public Context getContext() {
-        return context;
+        return this.contextAndView.getContext();
     }
+
+    public ContextAndView getContextAndView() {
+        return contextAndView;
+    }
+
+    public HttpAttributes getHttpAttributes(){
+        return new HttpAttributes(this.exchange.getHttpContext().getAttributes());
+    }
+
+    public QueryParameters getQueryParameters(){
+        return new QueryParameters(this.queryParams);
+    }
+
+    public FormParameters getFormParameters(){
+        return new FormParameters(this.formParams);
+    }
+
+    public HttpRequestHeaders getHttpRequestHeaders(){
+        return new HttpRequestHeaders(this.exchange.getRequestHeaders());
+    }
+
+    public HttpResponseHeaders getHttpResponseHeaders(){
+        return new HttpResponseHeaders(this.exchange.getResponseHeaders());
+    }
+
+
 
     public Map<String, String> getQueryParams() {
         return queryParams;

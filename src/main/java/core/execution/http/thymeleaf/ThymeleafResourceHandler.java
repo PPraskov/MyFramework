@@ -20,7 +20,6 @@ public class ThymeleafResourceHandler {
             }
             TemplateEngine engine = new TemplateEngine();
             engine.setTemplateResolver(stringTemplateResolver);
-            context.setVariable("k","hello variable");
             String result = engine.process(template, context);
             return result;
         }

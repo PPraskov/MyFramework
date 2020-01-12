@@ -50,13 +50,13 @@ public final class ApplicationManager {
     }
 
     private void testDependencies() {
-        DependencyBuilder builder = new DependencyResolveManager();
-        try {
-            Object o = builder.buildController(DemoController.class);
-            System.out.println(o);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+//        DependencyBuilder builder = new DependencyResolveManager();
+//        try {
+////            Object o = builder.buildController(DemoController.class);
+//            System.out.println(o);
+//        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void initializeTemplates() throws IOException {

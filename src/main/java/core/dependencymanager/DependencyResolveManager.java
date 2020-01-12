@@ -1,10 +1,12 @@
 package core.dependencymanager;
 
+import core.execution.http.HttpRequestThreadLocal;
 import core.repository.RepositoryFactoryImpl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,23 +41,43 @@ public class DependencyResolveManager implements DependencyBuilder {
     }
 
     @Override
-    public Object buildController(Class aClass) throws InstantiationException, IllegalAccessException, InvocationTargetException {
-        return build(aClass);
-    }
-
-    @Override
     public Object buildComponent(Class aClass) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         return build(aClass);
     }
 
     @Override
-    public Object[] buildMethodDependencies(Method m) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+    public Object[] buildControllerMethodDependencies(Method m, HttpRequestThreadLocal httpRequestThreadLocal) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+        Map<Class,Method> getMethods = getMethodsFromRequestTL(httpRequestThreadLocal);
         Class[] classArr = m.getParameterTypes();
         Object[] objects = new Object[classArr.length];
         for (int i = 0; i < classArr.length; i++) {
-            objects[i] = build(classArr[i]);
+            Method method = getMethods.get(classArr[i]);
+            objects[i] = createInputParameter(method,httpRequestThreadLocal);
         }
         return objects;
+    }
+
+    private Object createInputParameter(Method method,HttpRequestThreadLocal threadLocal){
+        try {
+            return method.invoke(threadLocal);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Map<Class, Method> getMethodsFromRequestTL(HttpRequestThreadLocal httpRequestThreadLocal) {
+        Map<Class,Method> methods = new HashMap<>();
+        Method[] declaredMethods = httpRequestThreadLocal.getClass().getDeclaredMethods();
+        for (int i = 0; i < declaredMethods.length; i++) {
+            Method m = declaredMethods[i];
+            if (m.getParameterTypes().length != 0){
+                continue;
+            }
+            Class returnType = m.getReturnType();
+            methods.put(returnType, m);
+        }
+        return methods;
     }
 
     private Object build(Class aClass) throws IllegalAccessException, InstantiationException, InvocationTargetException {
@@ -144,11 +166,6 @@ public class DependencyResolveManager implements DependencyBuilder {
 
 //    }
 
-    private Object createTempBean(Class aClass) throws InvocationTargetException, IllegalAccessException {
-        Method m = this.temporaryBeans.get(aClass);
-        Object o = temporaryBeansClass;
-        return m.invoke(o);
-    }
 
     private Object createBean(Class aClass, Map<Class, BeanDependency> beans) throws
             IllegalAccessException, InvocationTargetException, InstantiationException {

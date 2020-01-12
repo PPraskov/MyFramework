@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TemplateManager implements TemplateInitializer, TemplateFinder{
+public class TemplateManager implements TemplateInitializer, TemplateFinder {
 
     public TemplateManager() {
     }
@@ -23,7 +23,7 @@ public class TemplateManager implements TemplateInitializer, TemplateFinder{
         File folder = new File("C:/JavaProjects/MyFramework/src/main/resources/templates");
         List<File> files = new ArrayList<>();
         listFilesForFolder(folder, files);
-        Map<String, Template> templateMap = readFiles(files,folder.getPath());
+        Map<String, Template> templateMap = readFiles(files, folder.getPath());
 
         return templateMap;
     }
@@ -32,19 +32,18 @@ public class TemplateManager implements TemplateInitializer, TemplateFinder{
         Map<String, Template> templateMap = new HashMap<>();
         for (File file : files
         ) {
-            String path = fixPath(file.getPath(),pathToRemove);
+            String path = fixPath(file.getPath(), pathToRemove);
             String fileAsString = readFileAsString(file);
             Template template = new Template(fileAsString);
-            templateMap.put(path,template);
+            templateMap.put(path, template);
         }
         return templateMap;
     }
 
-    private String fixPath(String path, String pathToRemove){
-        return path.replace(pathToRemove,"").replace("\\","/");
+    private String fixPath(String path, String pathToRemove) {
+        return path.replace(pathToRemove, "").replace("\\", "/");
 
     }
-
 
 
     private String readFileAsString(File file) throws IOException {
@@ -72,6 +71,6 @@ public class TemplateManager implements TemplateInitializer, TemplateFinder{
 
     @Override
     public String findTemplate(String path) {
-       return TemplatesContainer.getInstance().getTemplates(path);
+        return TemplatesContainer.getInstance().getTemplates(path);
     }
 }
