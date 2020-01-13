@@ -85,7 +85,7 @@ public class DependencyResolveManager implements DependencyBuilder {
         if (this.instances.containsKey(aClass)) {
             return this.instances.get(aClass);
         }
-//        aClass = checkIfInterface(aClass);
+        aClass = checkIfInterface(aClass);
         DependencyType type = getComponentType(aClass);
         switch (type) {
             case BEAN:

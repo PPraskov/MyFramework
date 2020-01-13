@@ -64,7 +64,7 @@ class ComponentsInitializer {
                 }
             }
             ComponentDependency dependency = getDependency(subClass, dependencyType);
-            componentsMap.put(aClass, dependency);
+            componentsMap.put(subClass, dependency);
         }
         return componentsMap;
     }
