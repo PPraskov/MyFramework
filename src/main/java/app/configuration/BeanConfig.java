@@ -1,7 +1,7 @@
 package app.configuration;
 
 
-import app.test.beans.DummyBean;
+import app.beans.DummyBean;
 import core.annotations.configuration.BeanConfiguration;
 import core.annotations.dependency.Bean;
 

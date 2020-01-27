@@ -13,7 +13,7 @@ class FrontController {
 
     }
 
-    private void checkPathForResources() throws RedirectionException {
+    private void checkPathForResources() throws ResourceException {
         if (getRequestPath().contains(".")) {
             String afterDot = getRequestPath().substring(getRequestPath().lastIndexOf("."));
             if ((afterDot.equals(".js") || afterDot.equals(".css"))

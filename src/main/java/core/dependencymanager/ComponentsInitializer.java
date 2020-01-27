@@ -27,11 +27,11 @@ class ComponentsInitializer {
         components.addAll(scanForTypes(packageName, Component.class));
         components.addAll(scanForTypes(packageName, Service.class));
         components.addAll(scanForTypes(packageName, Controller.class));
-        components.addAll(scanForTypes(packageName,Repository.class));
+        components.addAll(scanForTypes(packageName, Repository.class));
         Reflections reflections = new Reflections(packageName);
         for (Class aClass : components
         ) {
-            DependencyType dependencyType = DependencyType.BASIC_COMPONENT;
+            DependencyType dependencyType = null;
             if (aClass.isAnnotationPresent(Controller.class)) {
                 if (aClass.isAnnotationPresent(Service.class)
                         || aClass.isAnnotationPresent(Repository.class)) {
@@ -44,13 +44,18 @@ class ComponentsInitializer {
                     throw new DependencyException("A component can be only a controller, service or repository!");
                 }
                 dependencyType = DependencyType.SERVICE;
-            }
-            else if (aClass.isAnnotationPresent(Repository.class)) {
+            } else if (aClass.isAnnotationPresent(Repository.class)) {
                 if (aClass.isAnnotationPresent(Service.class)
                         || aClass.isAnnotationPresent(Controller.class)) {
                     throw new DependencyException("A component can be only a controller, service or repository!");
                 }
                 dependencyType = DependencyType.REPOSITORY;
+            } else if (aClass.isAnnotationPresent(Component.class)) {
+                if (aClass.isAnnotationPresent(Service.class)
+                        || aClass.isAnnotationPresent(Controller.class)) {
+                    throw new DependencyException("A component can be only a controller, service or repository!");
+                }
+                dependencyType = DependencyType.BASIC_COMPONENT;
             }
             Class subClass = aClass;
             if (aClass.isInterface()) {
@@ -63,14 +68,18 @@ class ComponentsInitializer {
                     subClass = c;
                 }
             }
-            ComponentDependency dependency = getDependency(subClass, dependencyType);
-            componentsMap.put(subClass, dependency);
+            if (dependencyType != null) {
+                ComponentDependency dependency = getDependency(subClass, dependencyType);
+                componentsMap.put(aClass, dependency);
+            }
+
         }
         return componentsMap;
     }
 
 
-    private ComponentDependency getDependency(Class clazz, DependencyType dependencyType) throws DependencyException, NoSuchMethodException {
+    private ComponentDependency getDependency(Class clazz, DependencyType dependencyType) throws
+            DependencyException, NoSuchMethodException {
         ComponentDependency dependency = getComponentDependency(clazz, dependencyType);
         if (dependency == null) {
             throw new DependencyException("Dependency not set!");
@@ -79,7 +88,8 @@ class ComponentsInitializer {
     }
 
 
-    private ComponentDependency getComponentDependency(Class theClass, DependencyType dependencyType) throws DependencyException, NoSuchMethodException {
+    private ComponentDependency getComponentDependency(Class theClass, DependencyType dependencyType) throws
+            DependencyException, NoSuchMethodException {
         Constructor[] declaredConstructors = theClass.getDeclaredConstructors();
         Set<Constructor> constructors = Arrays.stream(declaredConstructors)
                 .filter(constructor -> constructor.getAnnotation(Autowire.class) != null)
@@ -102,9 +112,10 @@ class ComponentsInitializer {
         return null;
     }
 
-    private boolean checkConstructor(Constructor constructor, DependencyType dependencyType) throws DependencyException {
+    private boolean checkConstructor(Constructor constructor, DependencyType dependencyType) throws
+            DependencyException {
         Class[] constructorParameterTypes = constructor.getParameterTypes();
-        if (constructorParameterTypes.length > 0 && dependencyType == DependencyType.REPOSITORY ){
+        if (constructorParameterTypes.length > 0 && dependencyType == DependencyType.REPOSITORY) {
             return false;
         }
         for (int i = 0; i < constructorParameterTypes.length; i++) {

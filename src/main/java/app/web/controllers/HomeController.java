@@ -11,7 +11,6 @@ import core.execution.http.utill.HttpRequestHeaders;
 import core.execution.http.utill.HttpResponseHeaders;
 
 @Controller(mapping = "/")
-@Component
 public class HomeController {
 
     private final DemoService demoService;

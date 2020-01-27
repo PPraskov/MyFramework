@@ -1,7 +1,7 @@
 package app.utill;
 
 
-import app.test.beans.DummyBean;
+import app.beans.DummyBean;
 import core.annotations.dependency.Component;
 import core.annotations.dependency.Autowire;
 

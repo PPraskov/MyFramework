@@ -5,19 +5,19 @@ import javax.persistence.*;
 @MappedSuperclass
 class Identifier {
 
-    private long id;
+    private Long id;
 
     Identifier() {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 }

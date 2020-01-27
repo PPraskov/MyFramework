@@ -1,5 +1,8 @@
 package core.execution;
 
+import app.domain.entity.User;
+import app.service.DemoService;
+import app.service.DemoServiceImpl;
 import core.dependencymanager.DependencyBuilder;
 import core.dependencymanager.DependencyInitializeManager;
 import core.dependencymanager.DependencyInitializer;
@@ -44,8 +47,25 @@ public final class ApplicationManager {
             initializeHttpControllers(applicationPackageName);
             initializeTemplates();
             startHttpServer();
+            test();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+        }
+    }
+
+    private void test() {
+        DependencyBuilder builder = new DependencyResolveManager();
+        try {
+            DemoService service = (DemoService) builder.buildComponent(DemoService.class);
+            User user = new User();
+            user.setId(123L);
+            user.setUsername("papi");
+            user.setPassword("123456");
+            ((DemoServiceImpl) service).saveUser(user);
+            DemoService service2 = (DemoService) builder.buildComponent(DemoService.class);
+            ((DemoServiceImpl) service2).findUser("username",user.getUsername());
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            e.printStackTrace();
         }
     }
 

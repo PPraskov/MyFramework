@@ -1,6 +1,7 @@
 package app.service;
 
 
+import app.domain.entity.User;
 import app.repository.TestRepo;
 import app.utill.DemoUtill;
 import core.annotations.dependency.Autowire;
@@ -17,5 +18,16 @@ public class DemoServiceImpl implements DemoService{
         this.testRepo = testRepo;
     }
 
+    public void saveUser(User user){
+         this.testRepo.save(user);
+        System.out.println("User saved!");
+    }
+
+    public void findUser(String username, String value){
+        User user = this.testRepo.getSingle(username, value);
+        System.out.println(user.getId());
+        System.out.println(user.getUsername());
+        System.out.println(user.getPassword());
+    }
 
 }

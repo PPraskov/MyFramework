@@ -6,7 +6,6 @@ import core.repository.RepositoryFactoryImpl;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +13,6 @@ public class DependencyResolveManager implements DependencyBuilder {
 
     private final Map<Class, BeanDependency> beans;
     private final Map<Class, ComponentDependency> components;
-    private TemporaryBeans temporaryBeansClass;
-    private Map<Class, Method> temporaryBeans;
     private Map<Class, Object> instances;
     private Map<Class, DependencyType> dependencyType;
 
@@ -85,13 +82,13 @@ public class DependencyResolveManager implements DependencyBuilder {
         if (this.instances.containsKey(aClass)) {
             return this.instances.get(aClass);
         }
-        aClass = checkIfInterface(aClass);
         DependencyType type = getComponentType(aClass);
+//        aClass = checkIfInterface(aClass);
         switch (type) {
             case BEAN:
                 return createBean(aClass, this.beans);
             case REPOSITORY:
-                return createRepository(aClass);
+                return aClass.cast(createRepository(aClass));
             case CONTROLLER:
             case BASIC_COMPONENT:
             case SERVICE:
@@ -133,7 +130,7 @@ public class DependencyResolveManager implements DependencyBuilder {
     }
 
     private Object createRepository(Class aClass) throws IllegalAccessException, InstantiationException, InvocationTargetException {
-        return RepositoryFactoryImpl.getFactory().createRepository(this.components.get(aClass).getConstructor());
+        return RepositoryFactoryImpl.getFactory().createRepository(aClass,this.components.get(aClass).getConstructor());
     }
 //    Object buildComponent(Class aClass) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
 //        Object o = null;

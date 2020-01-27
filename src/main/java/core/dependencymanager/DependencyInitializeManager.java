@@ -22,11 +22,10 @@ public final class DependencyInitializeManager implements DependencyInitializer 
             throws BeanException, DependencyException, InvocationTargetException,
             NoSuchMethodException, InstantiationException, IllegalAccessException {
         Map<Class, BeanDependency> defaultBeans = new BeansInitializer().initializeApplicationBeans(packageName);
-//        Map<Class, BeanDependency> applicationBeans = new BeansInitializer().initializeDefaultBeans(corePackageName);
         Map<Class, ComponentDependency> components = new ComponentsInitializer().initializeComponents(packageName);
 
         Map<Class, BeanDependency> beans = new HashMap<>(defaultBeans);
-//        beans.putAll(applicationBeans);
+
 
 
         DependencyContainer.init(beans, components);

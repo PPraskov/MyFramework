@@ -5,9 +5,11 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,15 +20,17 @@ public final class RepositoryFactoryImpl implements RepositoryFactory {
     private StandardServiceRegistry registry;
     private SessionFactory sessionFactory;
 
-    private RepositoryFactoryImpl(Map<String, String> settings, Set<Class> models) {
+    private RepositoryFactoryImpl(Map<String, String> settings, Set<Class> models)  {
         Map<String, String> tempSettings = Collections.unmodifiableMap(new HashMap<>(settings));
         Set<Class> tempModels = Collections.unmodifiableSet(new HashSet<>(models));
         this.settings = new AtomicReference<>(tempSettings);
         this.models = new AtomicReference<>(tempModels);
         this.sessionFactory = initSessionFactory();
+
+
     }
 
-    synchronized static void init(Map<String, String> settings, Set<Class> models) {
+    synchronized static void init(Map<String, String> settings, Set<Class> models) throws NoSuchMethodException {
         if (instance == null) {
             instance = new RepositoryFactoryImpl(settings, models);
         }
@@ -76,9 +80,25 @@ public final class RepositoryFactoryImpl implements RepositoryFactory {
         }
     }
 
-    public Object createRepository(Constructor constructor) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public Object createRepository(Class aClass, Constructor constructor)
+            throws IllegalAccessException, InvocationTargetException, InstantiationException {
         Repository repository = (Repository) constructor.newInstance();
         repository.setSessionFactory(getSessionFactory());
+        Class entityClass = getEntityClass(aClass);
+        repository.setEntityClass(entityClass);
         return repository;
     }
+
+    private Class getEntityClass(Class aClass) {
+        TypeVariable typeParameter = aClass.getTypeParameters()[0];
+        for (Class c : this.models.get()
+        ) {
+            if (c.getSimpleName().equals(typeParameter.getName())) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+
 }

@@ -25,12 +25,12 @@ public final class ControllerInitializer implements HttpControllerInitializer {
         for (Class clazz : controllers
         ) {
             Annotation[] annotations = clazz.getDeclaredAnnotations();
-            if (Arrays.stream(annotations)
-                    .filter(annotation ->
-                            annotation.annotationType().equals(Component.class))
-                    .collect(Collectors.toSet()).isEmpty()) {
-                throw new DependencyException(String.format("%s must also be annotated with %s", Controller.class, Component.class));
-            }
+//            if (Arrays.stream(annotations)
+//                    .filter(annotation ->
+//                            annotation.annotationType().equals(Component.class))
+//                    .collect(Collectors.toSet()).isEmpty()) {
+//                throw new DependencyException(String.format("%s must also be annotated with %s", Controller.class, Component.class));
+//            }
             Controller controllerAnnotation = (Controller) clazz.getAnnotation(Controller.class);
             String mapping = controllerAnnotation.mapping();
             Method[] methods = clazz.getDeclaredMethods();
