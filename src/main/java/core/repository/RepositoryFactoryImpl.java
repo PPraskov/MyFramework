@@ -30,7 +30,7 @@ public final class RepositoryFactoryImpl implements RepositoryFactory {
 
     }
 
-    synchronized static void init(Map<String, String> settings, Set<Class> models) throws NoSuchMethodException {
+    synchronized static void init(Map<String, String> settings, Set<Class> models) {
         if (instance == null) {
             instance = new RepositoryFactoryImpl(settings, models);
         }
@@ -70,7 +70,7 @@ public final class RepositoryFactoryImpl implements RepositoryFactory {
         return sessionFactory;
     }
 
-    SessionFactory getSessionFactory() {
+    private SessionFactory getSessionFactory() {
         return initSessionFactory();
     }
 
@@ -84,8 +84,8 @@ public final class RepositoryFactoryImpl implements RepositoryFactory {
             throws IllegalAccessException, InvocationTargetException, InstantiationException {
         Repository repository = (Repository) constructor.newInstance();
         repository.setSessionFactory(getSessionFactory());
-        Class entityClass = getEntityClass(aClass);
-        repository.setEntityClass(entityClass);
+//        Class entityClass = getEntityClass(aClass);
+//        repository.setEntityClass(entityClass);
         return repository;
     }
 

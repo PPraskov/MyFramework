@@ -8,7 +8,7 @@ import org.hibernate.query.NativeQuery;
 
 import javax.persistence.Table;
 
-public abstract class Repository<E> implements GenericRepository<E> {
+public class Repository<E> implements GenericRepository<E> {
 
     protected E entity;
     private SessionFactory sessionFactory;
@@ -47,7 +47,7 @@ public abstract class Repository<E> implements GenericRepository<E> {
         Class c = this.getEntityClass();
         try {
             String queryStr = String.format("SELECT * FROM %s AS t " +
-                    "WHERE t.%s = :value ", getTableName(), columnName, value);
+                    "WHERE t.%s = :value ", getTableName(), columnName);
             NativeQuery nativeQuery = session.createNativeQuery(queryStr, c).setParameter("value", value);
             session.getTransaction().begin();
             E result = (E) nativeQuery.getSingleResult();
